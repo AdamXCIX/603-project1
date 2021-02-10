@@ -5,24 +5,24 @@ using UnityEngine;
 public class Character : MonoBehaviour
 {
     #region Fields
-    private float health;
+    protected float health;
 
-    [SerializeField] private float damage;
+    [SerializeField] protected float damage;
 
-    [SerializeField] private GameObject projectilePrefab;
+    [SerializeField] protected GameObject projectilePrefab;
 
-    [SerializeField] private float MaxHealth; 
+    [SerializeField] protected float MaxHealth; 
     #endregion
 
     #region Methods
     // Start is called before the first frame update
-    void Start()
+    protected virtual void Start()
     {
         health = MaxHealth; 
     }
 
     // Update is called once per frame
-    void Update()
+    protected virtual void Update()
     {
         
     }
