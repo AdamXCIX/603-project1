@@ -5,13 +5,13 @@ using UnityEngine;
 public class Character : MonoBehaviour
 {
     #region Fields
-    private float health;
+    protected float health;
 
-    [SerializeField] private float damage;
+    [SerializeField] protected float damage;
 
-    [SerializeField] private GameObject projectilePrefab;
+    [SerializeField] protected GameObject projectilePrefab;
 
-    [SerializeField] private float MaxHealth; 
+    [SerializeField] protected float MaxHealth; 
     #endregion
 
     #region Methods
