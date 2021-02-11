@@ -27,7 +27,7 @@ public class Character : MonoBehaviour
         
     }
 
-    public virtual void Shoot()
+    protected virtual void Shoot()
     {
         TakeDamage(damage);
 
