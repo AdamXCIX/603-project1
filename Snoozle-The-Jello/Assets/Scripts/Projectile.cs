@@ -5,7 +5,7 @@ using UnityEngine;
 public class Projectile : MonoBehaviour
 {
     #region Fields
-    private float damage;
+    protected float damage;
 
     [SerializeField] Vector2 speed;
 
@@ -31,13 +31,13 @@ public class Projectile : MonoBehaviour
     #endregion
 
     // Start is called before the first frame update
-    void Start()
+    protected virtual void Start()
     {
         
     }
 
     // Update is called once per frame
-    void Update()
+    protected virtual void Update()
     {
         transform.Translate(Speed);
 
