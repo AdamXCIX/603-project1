@@ -10,25 +10,23 @@ enum PlayerState
 
 public class Player : Character
 {
-    [SerializeField] private float walkSpeed;
+    #region Fields
     [SerializeField] private float jumpForce;
     [SerializeField] private LayerMask groundLayer;
 
-    private SpriteRenderer spriteRenderer;
-    private Rigidbody2D rigidbody2D;
-    private BoxCollider2D boxCollider2D;
     private PlayerState state;
     private PlayerState prevState;
 
     private bool canJump;
     private bool onGround;
+    #endregion 
 
 
     // Start is called before the first frame update
     protected override void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        rigidbody2D = GetComponent<Rigidbody2D>();
+        rigidBody = GetComponent<Rigidbody2D>();
         boxCollider2D = GetComponent<BoxCollider2D>();
         state = PlayerState.Stand;
 
@@ -38,7 +36,7 @@ public class Player : Character
     // Update is called once per frame
     protected override void Update()
     {
-        onGround = checkIfOnGround(); //Set whether player is on ground
+        onGround = CheckIfOnGround(); //Set whether player is on ground
 
         if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow) && spriteRenderer.flipX) //Player Faces Left
             spriteRenderer.flipX = false;
@@ -88,7 +86,7 @@ public class Player : Character
                 else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) //Player Moves Right
                     Move(walkSpeed);
 
-                if (onGround && rigidbody2D.velocity.y < 0) //Landing on the Ground
+                if (onGround && rigidBody.velocity.y < 0) //Landing on the Ground
                     state = PlayerState.Stand;
                 break;
         }
@@ -96,18 +94,13 @@ public class Player : Character
         prevState = state; //Updates previous state
     }
 
-    private void Move(float speed) //Moves the player horizontally
-    {
-        rigidbody2D.velocity = new Vector2(speed, rigidbody2D.velocity.y);
-    }
-
     private void Jump(float speed) //Allows the player to jump
     {
         //rigidbody2D.AddForce(new Vector2(0, force), ForceMode2D.Impulse);
-        rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, speed);
+        rigidBody.velocity = new Vector2(rigidBody.velocity.x, speed);
     }
 
-    private bool checkIfOnGround()
+    private bool CheckIfOnGround()
     {
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, boxCollider2D.size.y / 2 + 0.5f, groundLayer);
         return hit.collider != null;
