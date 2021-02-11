@@ -8,6 +8,7 @@ public class MeleeEnemy : Character
     public Rigidbody2D rb;
     [SerializeField]
     public bool isFacingRight;
+    public bool isSeeking;
 
     // Start is called before the first frame update
     void Start()
@@ -20,6 +21,7 @@ public class MeleeEnemy : Character
         health = MaxHealth;
         damage = 5.0f;
         rb = gameObject.GetComponent<Rigidbody2D>();
+        isSeeking = false;
     }
 
     // Update is called once per frame
@@ -41,14 +43,16 @@ public class MeleeEnemy : Character
         if (DistBetween(player) <= 5.0f)
         {
             Seek(player);
+            isSeeking = true;
             Debug.Log("Seeking");
         }
         else
         {
             Wander();
+            isSeeking = false;
             Debug.Log("Wandering");
         }
-        // rb.velocity = Vector2.ClampMagnitude(rb.velocity, 0.5f);
+        rb.velocity = Vector2.ClampMagnitude(rb.velocity, 0.5f);
     }
 
     /// <summary>
@@ -110,7 +114,7 @@ public class MeleeEnemy : Character
 
     public void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.tag == "Pathway")
+        if (collision.tag == "Pathway" && isSeeking == false)
         {
             //gameObject.transform.forward = new Vector3(-gameObject.transform.forward.x, 0.0f, 0.0f);
             isFacingRight = !isFacingRight;
