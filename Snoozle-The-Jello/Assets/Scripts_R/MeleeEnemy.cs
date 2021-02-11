@@ -40,7 +40,7 @@ public class MeleeEnemy : Character
     /// </summary>
     public override void Move()
     {
-        if (DistBetween(player) <= 5.0f)
+        if (DistBetween(player) <= 4.0f)
         {
             Seek(player);
             isSeeking = true;
@@ -52,7 +52,7 @@ public class MeleeEnemy : Character
             isSeeking = false;
             Debug.Log("Wandering");
         }
-        rb.velocity = Vector2.ClampMagnitude(rb.velocity, 0.5f);
+        rb.velocity = Vector2.ClampMagnitude(rb.velocity, 0.75f);
     }
 
     /// <summary>
@@ -75,11 +75,11 @@ public class MeleeEnemy : Character
         // gameObject.transform.LookAt(targetObj.transform);
         if (DistBetween(player) > 0)
         {
-            rb.AddForce(new Vector2(0.5f, 0));
+            rb.AddForce(new Vector2(1.0f, 0));
         }
         else if (DistBetween(player) <0 )
         {
-            rb.AddForce(new Vector2(-0.5f, 0));
+            rb.AddForce(new Vector2(-1.0f, 0));
         }
     }
 
@@ -90,11 +90,11 @@ public class MeleeEnemy : Character
     {
         if (isFacingRight)
         {
-            rb.AddForce(new Vector2(0.5f, 0));
+            rb.AddForce(new Vector2(1.0f, 0));
         }
         else
         {
-            rb.AddForce(new Vector2(-0.5f, 0));
+            rb.AddForce(new Vector2(-1.0f, 0));
         }
     }
 
