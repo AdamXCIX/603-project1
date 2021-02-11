@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c0a805e1034e59478cf93f7bb8bfb76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 5
+  damage: 20
   projectilePrefab: {fileID: 5544276040291835791, guid: b2156e4a537d6bc458e50e6228e2270a,
     type: 3}
   MaxHealth: 100

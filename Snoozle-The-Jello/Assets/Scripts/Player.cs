@@ -10,6 +10,9 @@ enum PlayerState
 
 public class Player : Character
 {
+    //For spritesheet animations
+    //http://www.strandedsoft.com/using-spritesheets-with-unity3d/
+
     [SerializeField] private float walkSpeed; //Walk Speed
     [SerializeField] private float jumpSpeed; //Initial Jump Speed
     [SerializeField] private float shotSpeed; //Projectile Speed
@@ -22,7 +25,9 @@ public class Player : Character
     private bool canJump; //Player can jump
     private bool onGround; //Player is on ground
     private bool canShoot; //Player can shoot
+    private bool canSwipe; //Player can swipe attack
     private bool canTakeDamage; //Player can be damaged
+    private bool isDead;
 
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rigidbody2D;
@@ -52,67 +57,70 @@ public class Player : Character
     // Update is called once per frame
     protected override void Update()
     {
-        onGround = CheckIfOnGround(); //Check whether player is on ground
-
-        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow) && spriteRenderer.flipX) //Player Faces Left
-            spriteRenderer.flipX = false;
-        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow) && !spriteRenderer.flipX) //Player Faces Left
-            spriteRenderer.flipX = true;
-
-        if (Input.GetKey(KeyCode.J) && canShoot)
+        if (!isDead)
         {
-            Shoot();
+            onGround = CheckIfOnGround(); //Check whether player is on ground
+
+            if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow) && spriteRenderer.flipX) //Player Faces Left
+                spriteRenderer.flipX = false;
+            else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow) && !spriteRenderer.flipX) //Player Faces Left
+                spriteRenderer.flipX = true;
+
+            if (Input.GetKey(KeyCode.J) && canShoot && (health > damage)) //Player can only shoot if it won't kill them
+                Shoot();
+            if (Input.GetKey(KeyCode.L) && canSwipe) //Melee attack
+                Swipe();
+
+                switch (state)
+            {
+                //Player is not moving
+                case PlayerState.Stand:
+                    if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)) //Player Walks
+                        state = PlayerState.Walk;
+                    else if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) //Player Walks
+                        state = PlayerState.Walk;
+                    else if (Input.GetKeyDown(KeyCode.K) || Input.GetKeyDown(KeyCode.Space)) //Player Jumps
+                    {
+                        canJump = true;
+                        state = PlayerState.Jump;
+                    }
+                    break;
+
+                //Player is moving
+                case PlayerState.Walk:
+                    if (Input.GetKeyDown(KeyCode.K) || Input.GetKeyDown(KeyCode.Space)) //Player Jumps
+                    {
+                        canJump = true;
+                        state = PlayerState.Jump;
+                    }
+                    else if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) //Player Moves Left
+                        Move(-walkSpeed);
+                    else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) //Player Moves Right
+                        Move(walkSpeed);
+                    else
+                        state = PlayerState.Stand;
+
+                    break;
+
+                //Player is jumping
+                case PlayerState.Jump:
+                    if (onGround && canJump) //Jump for one frame if not on ground
+                    {
+                        canJump = false;
+                        Jump(jumpSpeed);
+                    }
+                    if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) //Player Moves Left
+                        Move(-walkSpeed);
+                    else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) //Player Moves Right
+                        Move(walkSpeed);
+
+                    if (onGround && rigidbody2D.velocity.y < 0) //Landing on the Ground
+                        state = PlayerState.Stand;
+                    break;
+            }
+
+            prevState = state; //Updates previous state
         }
-
-        switch (state)
-        {
-            //Player is not moving
-            case PlayerState.Stand:
-                if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)) //Player Walks
-                    state = PlayerState.Walk;
-                else if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) //Player Walks
-                    state = PlayerState.Walk;
-                else if (Input.GetKeyDown(KeyCode.K) || Input.GetKeyDown(KeyCode.Space)) //Player Jumps
-                {
-                    canJump = true;
-                    state = PlayerState.Jump;
-                }
-                break;
-
-            //Player is moving
-            case PlayerState.Walk:
-                if (Input.GetKeyDown(KeyCode.K) || Input.GetKeyDown(KeyCode.Space)) //Player Jumps
-                {
-                    canJump = true;
-                    state = PlayerState.Jump;
-                }
-                else if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) //Player Moves Left
-                    Move(-walkSpeed);
-                else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) //Player Moves Right
-                    Move(walkSpeed);
-                else
-                    state = PlayerState.Stand;
-
-                break;
-
-            //Player is jumping
-            case PlayerState.Jump:
-                if (onGround && canJump) //Jump for one frame if not on ground
-                {
-                    canJump = false; 
-                    Jump(jumpSpeed);
-                }
-                if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) //Player Moves Left
-                    Move(-walkSpeed);
-                else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) //Player Moves Right
-                    Move(walkSpeed);
-
-                if (onGround && rigidbody2D.velocity.y < 0) //Landing on the Ground
-                    state = PlayerState.Stand;
-                break;
-        }
-
-        prevState = state; //Updates previous state
     }
 
     //------------------------Basic Controls------------------------
@@ -127,11 +135,10 @@ public class Player : Character
         rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, speed);
     }
 
-   protected override void Shoot()
+    protected override void Shoot() //Ranged Attack
     {
         ChangeHealth(-damage);
 
-        //canShoot = false;
         //Set thread to turn shooting back on in a short amount of time
 
         GameObject projectile = Instantiate(projectilePrefab, gameObject.transform.position, gameObject.transform.rotation); //Creates a projectile and removes its health from the player
@@ -148,6 +155,22 @@ public class Player : Character
 
         StartCoroutine(DelayNextShot(shotDelay));
     }
+
+
+
+
+    /************************************************************************************************
+     * 
+     * Melee Attack
+     * 
+     * ************************************************************************************************/
+    protected void Swipe() //Melee Attack
+    {
+        
+    }
+
+
+
 
     IEnumerator DelayNextShot(float shotDelay)
     {
@@ -187,9 +210,9 @@ public class Player : Character
                 Destroy(other);
             }
         }*/
-    }
+}
 
-    private void OnTriggerEnter2D(Collider2D collision) //Handles collisions between player and non-physical GameObjects
+private void OnTriggerEnter2D(Collider2D collision) //Handles collisions between player and non-physical GameObjects
     {
         GameObject other = collision.gameObject;
         if (other.tag == "Pickup") //Player touches a health pickup
@@ -215,13 +238,14 @@ public class Player : Character
         
         if ((health + value) > MaxHealth) //Health raised to max
             health = MaxHealth;
-        else if ((health + value) < 0) //Health lowered to 0
+        else if ((health + value) <= 0) //Health lowered to 0
         {
             health = 0;
-            Destroy(gameObject);
+            isDead = true;
         }
         else //Raises or lowers health
             health += value;
+
 
         for (int i = sizeStages - 1; i >= 0; i--)
         {
@@ -232,7 +256,28 @@ public class Player : Character
                 break;
             }
         }
+
+        if (health > damage)
+            spriteRenderer.color = Color.white;
+        else if (health > 0)
+            spriteRenderer.color = Color.gray;
+        else
+            spriteRenderer.color = new Color(0.25f, 0.25f, 0.25f);
     }
+
+
+
+
+
+    /************************************************************************************************
+     * 
+     * Restore small amount of health over time
+     * 
+     * ************************************************************************************************/
+
+
+
+
 
     public void TakeDamage(float value, Vector2 kbDirection) //Decreases player's health and Handles knockback
     {
@@ -279,6 +324,4 @@ public class Player : Character
             kbLength += Time.deltaTime;
         }
     }
-
-    
 }
