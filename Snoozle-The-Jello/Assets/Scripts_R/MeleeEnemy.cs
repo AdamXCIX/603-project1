@@ -10,6 +10,9 @@ public class MeleeEnemy : Character
     public bool isFacingRight;
     public bool isSeeking;
 
+    public float Damage
+    { get { return damage; } }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -30,6 +33,7 @@ public class MeleeEnemy : Character
         Move();
     }
 
+    // leacing this blank b/c not worth
     public override void Shoot()
     {
         
@@ -44,15 +48,15 @@ public class MeleeEnemy : Character
         {
             Seek(player);
             isSeeking = true;
-            Debug.Log("Seeking");
+            // Debug.Log("Seeking");
         }
         else
         {
             Wander();
             isSeeking = false;
-            Debug.Log("Wandering");
+            // Debug.Log("Wandering");
         }
-        rb.velocity = Vector2.ClampMagnitude(rb.velocity, 0.75f);
+        rb.velocity = Vector2.ClampMagnitude(rb.velocity, 1.5f);
     }
 
     /// <summary>
@@ -108,7 +112,7 @@ public class MeleeEnemy : Character
         {
             // This is where i could call takedamage on the player character
             // collision.gameObject.GetComponent<>().TakeDamage();
-            Debug.Log("Hit player");
+            // Debug.Log("Hit player");
         }
     }
 
