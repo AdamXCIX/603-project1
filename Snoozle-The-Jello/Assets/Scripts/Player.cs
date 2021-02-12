@@ -17,8 +17,9 @@ public class Player : Character
     [SerializeField] private float jumpSpeed; //Initial Jump Speed
     [SerializeField] private float shotSpeed; //Projectile Speed
     [SerializeField] private float shotDistance; //Distance Projectile moves before dropping
-    [SerializeField] private float shotDelay; //econds between Projectile shots
+    [SerializeField] private float shotDelay; //Seconds between Projectile shots
     [SerializeField] private float kbForce; //Knockback force
+    [SerializeField] private float regenDelay; //Seconds between health regenerations
     [SerializeField] private int sizeStages; //Number of stages for size changes
     
 
@@ -28,21 +29,40 @@ public class Player : Character
     private bool canSwipe; //Player can swipe attack
     private bool canTakeDamage; //Player can be damaged
     private bool isDead;
+    private bool facingRight;
+    private float timeSinceRegen;
+
 
     private SpriteRenderer spriteRenderer;
+    private Animator animator;
     private Rigidbody2D rigidbody2D;
     private BoxCollider2D boxCollider2D;
     private LayerMask groundLayer;
     private PlayerState state;
     private PlayerState prevState;
 
+    public float MHealth
+    {
+        get { return MaxHealth; }
+    }
+    public float Health
+    {
+        get { return health; }
+    }
+    public float Damage
+    {
+        get { return damage; }
+    }
+
     // Start is called before the first frame update
     protected override void Start()
     {
         canShoot = true;
+        canSwipe = true;
         canTakeDamage = true;
 
         spriteRenderer = GetComponent<SpriteRenderer>();
+        animator = GetComponent<Animator>();
         rigidbody2D = GetComponent<Rigidbody2D>();
         boxCollider2D = GetComponent<BoxCollider2D>();
         groundLayer = LayerMask.GetMask("Ground");
@@ -120,6 +140,12 @@ public class Player : Character
             }
 
             prevState = state; //Updates previous state
+            UpdateAnimation();
+            
+            if (health != MaxHealth)
+            {
+                RegenerateHealth();
+            }
         }
     }
 
@@ -141,7 +167,12 @@ public class Player : Character
 
         //Set thread to turn shooting back on in a short amount of time
 
-        GameObject projectile = Instantiate(projectilePrefab, gameObject.transform.position, gameObject.transform.rotation); //Creates a projectile and removes its health from the player
+        Vector3 pos = gameObject.transform.position;
+        pos.y -= 0.1f * transform.localScale.y;
+        pos.z = 1;
+
+        GameObject projectile = Instantiate(projectilePrefab, pos, gameObject.transform.rotation); //Creates a projectile and removes its health from the player
+        projectile.transform.localScale = transform.localScale;
         PlayerProjectile projScript = projectile.GetComponent<PlayerProjectile>();
         if (projScript)
         {
@@ -184,6 +215,28 @@ public class Player : Character
         }
         canShoot = true;
     }
+
+    //------------------------Animation------------------------
+    private void UpdateAnimation()
+    {
+        if (!canShoot) //Player is using ranged attack
+            animator.SetInteger("AnimState", 3);
+        else if (!canSwipe) //Player is melee attack
+            animator.SetInteger("AnimState", 2);
+        else if (state == PlayerState.Walk) //Player is walking
+            animator.SetInteger("AnimState", 1);
+        else if (state == PlayerState.Stand || state == PlayerState.Jump) //Player is not attacking or walking
+            animator.SetInteger("AnimState", 0);
+    }
+
+    private void FlipSprite() //Flips Sprite when player turns left or right
+    {
+        facingRight = !facingRight;
+        Vector2 scale = rigidbody2D.transform.localScale;
+        scale.x *= -1;
+        rigidbody2D.transform.localScale = scale;
+    }
+
 
     //------------------------Collision Handling------------------------
     private void OnCollisionEnter2D(Collision2D collision) //Handles collisions between player and physical GameObjects
@@ -228,7 +281,7 @@ private void OnTriggerEnter2D(Collider2D collision) //Handles collisions between
 
     private bool CheckIfOnGround()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, boxCollider2D.size.y / 2 + 0.5f, groundLayer);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, boxCollider2D.size.y / 2 + 0.05f, groundLayer);
         return hit.collider != null;
     }
 
@@ -246,26 +299,38 @@ private void OnTriggerEnter2D(Collider2D collision) //Handles collisions between
         else //Raises or lowers health
             health += value;
 
-
-        for (int i = sizeStages - 1; i >= 0; i--)
-        {
-            if (health >= (MaxHealth * i / sizeStages))
-            {
-                float percent = (i + 1.0f) / sizeStages;
-                transform.localScale = new Vector3(percent, percent, percent);
-                break;
-            }
-        }
-
-        if (health > damage)
+        if (health > damage) //Changes color to show whetehr player can shoot
             spriteRenderer.color = Color.white;
         else if (health > 0)
             spriteRenderer.color = Color.gray;
         else
             spriteRenderer.color = new Color(0.25f, 0.25f, 0.25f);
+
+
+        for (int i = sizeStages - 1; i >= 0; i--) //Changes size based on health
+        {
+            if (health >= (MaxHealth * i / sizeStages))
+            {
+                float percent = (i + 1.0f) / sizeStages;
+                transform.localScale = new Vector3(percent, percent, 1);
+                break;
+            }
+        }
     }
 
-
+    void RegenerateHealth() //Regenerates health over time to prevent player from being forced to die
+    {
+        if (timeSinceRegen >= regenDelay) //Time delay has passed
+        {
+            health += 1;
+            timeSinceRegen = 0;
+            Debug.Log("Health: " + health);
+        }
+        else //Increment time
+        {
+            timeSinceRegen += Time.deltaTime;
+        }
+    }
 
 
 
