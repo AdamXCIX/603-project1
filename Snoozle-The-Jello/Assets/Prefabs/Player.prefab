@@ -55,9 +55,14 @@ MonoBehaviour:
   jumpSpeed: 8
   shotSpeed: 7
   shotDistance: 5
-  shotDelay: 0.33
+  shotDelay: 0.5
+  swipeSpeed: 12
+  swipeDistance: 0.8
+  swipeDelay: 0.75
   kbForce: 7.5
+  regenDelay: 6
   sizeStages: 3
+  weapon: {fileID: 0}
 --- !u!95 &4150796177621748961
 Animator:
   serializedVersion: 3

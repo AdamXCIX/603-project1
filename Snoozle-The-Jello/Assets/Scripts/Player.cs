@@ -6,8 +6,9 @@ enum PlayerState
     Stand,
     Walk,
     Jump,
+    Shoot,
+    Swipe
 }
-
 public class Player : Character
 {
     //For spritesheet animations
@@ -18,9 +19,13 @@ public class Player : Character
     [SerializeField] private float shotSpeed; //Projectile Speed
     [SerializeField] private float shotDistance; //Distance Projectile moves before dropping
     [SerializeField] private float shotDelay; //Seconds between Projectile shots
+    [SerializeField] private float swipeSpeed; //Projectile Speed
+    [SerializeField] private float swipeDistance; //Distance Projectile moves before returning
+    [SerializeField] private float swipeDelay; //Seconds between Projectile shots
     [SerializeField] private float kbForce; //Knockback force
     [SerializeField] private float regenDelay; //Seconds between health regenerations
     [SerializeField] private int sizeStages; //Number of stages for size changes
+    [SerializeField] private GameObject weapon; //Reference to weapon
     
 
     private bool canJump; //Player can jump
@@ -29,7 +34,7 @@ public class Player : Character
     private bool canSwipe; //Player can swipe attack
     private bool canTakeDamage; //Player can be damaged
     private bool isDead;
-    private bool facingRight;
+
     private float timeSinceRegen;
 
 
@@ -69,6 +74,9 @@ public class Player : Character
         state = PlayerState.Stand;
         prevState = state;
 
+        weapon.GetComponent<PlayerWeapon>().SSpeed = swipeSpeed;
+        weapon.GetComponent<PlayerWeapon>().Distance = swipeDistance;
+        weapon.SetActive(false);
         rigidbody2D.freezeRotation = true; //Prevents player from rotating
 
         base.Start();
@@ -81,44 +89,45 @@ public class Player : Character
         {
             onGround = CheckIfOnGround(); //Check whether player is on ground
 
-            if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow) && spriteRenderer.flipX) //Player Faces Left
-                spriteRenderer.flipX = false;
-            else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow) && !spriteRenderer.flipX) //Player Faces Left
-                spriteRenderer.flipX = true;
-
-            if (Input.GetKey(KeyCode.J) && canShoot && (health > damage)) //Player can only shoot if it won't kill them
-                Shoot();
-            if (Input.GetKey(KeyCode.L) && canSwipe) //Melee attack
-                Swipe();
-
-                switch (state)
+            switch (state)
             {
                 //Player is not moving
                 case PlayerState.Stand:
-                    if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)) //Player Walks
-                        state = PlayerState.Walk;
-                    else if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) //Player Walks
+                    //animator.Play("PlayerIdle");
+                    if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D) ||
+                        Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) //Player Walks
                         state = PlayerState.Walk;
                     else if (Input.GetKeyDown(KeyCode.K) || Input.GetKeyDown(KeyCode.Space)) //Player Jumps
                     {
                         canJump = true;
                         state = PlayerState.Jump;
                     }
+                    else if (Input.GetKey(KeyCode.J)) //Ranged Attack
+                        state = PlayerState.Shoot;
+                    else if (Input.GetKey(KeyCode.L)) //Melee attack
+                        state = PlayerState.Swipe;
                     break;
 
                 //Player is moving
                 case PlayerState.Walk:
-                    if (Input.GetKeyDown(KeyCode.K) || Input.GetKeyDown(KeyCode.Space)) //Player Jumps
-                    {
-                        canJump = true;
-                        state = PlayerState.Jump;
-                    }
-                    else if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) //Player Moves Left
+                    //animator.Play("PlayerWalk");
+                    if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) //Player Moves Left
                         Move(-walkSpeed);
                     else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) //Player Moves Right
                         Move(walkSpeed);
                     else
                         state = PlayerState.Stand;
+
+                    if (Input.GetKeyDown(KeyCode.K) || Input.GetKeyDown(KeyCode.Space)) //Player Jumps
+                    {
+                        canJump = true;
+                        state = PlayerState.Jump;
+                    }
+                    else if (Input.GetKeyDown(KeyCode.J)) //Ranged Attack
+                        state = PlayerState.Shoot;
+                    else if (Input.GetKeyDown(KeyCode.L)) //Melee attack
+                        state = PlayerState.Swipe;
+                        
 
                     break;
 
@@ -134,13 +143,74 @@ public class Player : Character
                     else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) //Player Moves Right
                         Move(walkSpeed);
 
-                    if (onGround && rigidbody2D.velocity.y < 0) //Landing on the Ground
+                    if (Input.GetKey(KeyCode.J)) //Ranged Attack
+                        state = PlayerState.Shoot;
+                    else if (Input.GetKey(KeyCode.L)) //Melee attack
+                        state = PlayerState.Swipe;
+                    else
                         state = PlayerState.Stand;
+                    break;
+
+                //Player is using ranged attack
+                case PlayerState.Shoot:
+
+                    if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) //Player Moves Left
+                        Move(-walkSpeed);
+                    else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) //Player Moves Right
+                        Move(walkSpeed);
+
+                    if (canShoot && (health > damage)) //Shoots if player is able
+                    {
+                        Shoot();
+                        animator.Play("PlayerShoot", -1, 0f);
+                    }
+
+                    if (Input.GetKeyDown(KeyCode.K) || Input.GetKeyDown(KeyCode.Space)) //Player Jumps
+                    {
+                        canJump = true;
+                        state = PlayerState.Jump;
+                    }
+                    else if (!Input.GetKey(KeyCode.J)) //Ends state once button is released
+                        state = PlayerState.Stand;
+
+                    break;
+
+                //Player is using melee attack
+                case PlayerState.Swipe:
+                    if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) //Player Moves Left
+                        Move(-walkSpeed);
+                    else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) //Player Moves Right
+                        Move(walkSpeed);
+
+                    if (canSwipe) //Swipes if player is able
+                    {
+                        Swipe();
+                        animator.Play("PlayerSwipe", -1, 0f);
+                    }
+
+                    if (Input.GetKeyDown(KeyCode.K) || Input.GetKeyDown(KeyCode.Space)) //Player Jumps
+                    {
+                        canJump = true;
+                        state = PlayerState.Jump;
+                    }
+                    else if (!Input.GetKey(KeyCode.L)) //Ends state once animation is over
+                        state = PlayerState.Stand;
+
                     break;
             }
 
+            if (prevState != state &&
+                ((!animator.GetCurrentAnimatorStateInfo(0).IsName("PlayerShoot") && !animator.GetCurrentAnimatorStateInfo(0).IsName("PlayerSwipe")) ||
+                (animator.GetCurrentAnimatorStateInfo(0).IsName("PlayerShoot") || animator.GetCurrentAnimatorStateInfo(0).IsName("PlayerSwipe")) && animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1.0f))
+            {
+                if (state == PlayerState.Stand)
+                    animator.Play("PlayerIdle", -1, 0f);
+                else if (state == PlayerState.Walk)
+                    animator.Play("PlayerWalk", -1, 0f);
+
+            }
+
             prevState = state; //Updates previous state
-            UpdateAnimation();
             
             if (health != MaxHealth)
             {
@@ -153,6 +223,10 @@ public class Player : Character
     private void Move(float speed) //Moves the player horizontally
     {
         rigidbody2D.velocity = new Vector2(speed, rigidbody2D.velocity.y);
+        if (speed > 0) //Player Faces Left
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        else if (speed < 0) //Player Faces Left
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * -1, transform.localScale.y, transform.localScale.z);
     }
 
     private void Jump(float speed) //Allows the player to jump
@@ -163,9 +237,7 @@ public class Player : Character
 
     protected override void Shoot() //Ranged Attack
     {
-        ChangeHealth(-damage);
-
-        //Set thread to turn shooting back on in a short amount of time
+        ChangeHealth(-damage);   
 
         Vector3 pos = gameObject.transform.position;
         pos.y -= 0.1f * transform.localScale.y;
@@ -178,30 +250,15 @@ public class Player : Character
         {
             projScript.Damage = damage; //Set shot damage
             projScript.Distance = shotDistance; //Set shot damage
-            if (!spriteRenderer.flipX) //Set shot direction
+            if (transform.localScale.x > 0) //Set shot direction
                 projScript.Speed = shotSpeed * Vector2.right;
             else
                 projScript.Speed = shotSpeed * Vector2.left;
         }
 
+        //Set thread to turn shooting back on in a short amount of time
         StartCoroutine(DelayNextShot(shotDelay));
     }
-
-
-
-
-    /************************************************************************************************
-     * 
-     * Melee Attack
-     * 
-     * ************************************************************************************************/
-    protected void Swipe() //Melee Attack
-    {
-        
-    }
-
-
-
 
     IEnumerator DelayNextShot(float shotDelay)
     {
@@ -216,26 +273,35 @@ public class Player : Character
         canShoot = true;
     }
 
-    //------------------------Animation------------------------
-    private void UpdateAnimation()
+    protected void Swipe() //Melee Attack
     {
-        if (!canShoot) //Player is using ranged attack
-            animator.SetInteger("AnimState", 3);
-        else if (!canSwipe) //Player is melee attack
-            animator.SetInteger("AnimState", 2);
-        else if (state == PlayerState.Walk) //Player is walking
-            animator.SetInteger("AnimState", 1);
-        else if (state == PlayerState.Stand || state == PlayerState.Jump) //Player is not attacking or walking
-            animator.SetInteger("AnimState", 0);
+        weapon.SetActive(true);
+        PlayerWeapon wpnScript = weapon.GetComponent<PlayerWeapon>();
+
+        if (wpnScript)
+        if (wpnScript)
+        {
+            wpnScript.Attack();
+        }
+
+        //Set thread to turn swiping back on in a short amount of time
+        StartCoroutine(DelayNextSwipe(shotDelay));
     }
 
-    private void FlipSprite() //Flips Sprite when player turns left or right
+    IEnumerator DelayNextSwipe(float shotDelay)
     {
-        facingRight = !facingRight;
-        Vector2 scale = rigidbody2D.transform.localScale;
-        scale.x *= -1;
-        rigidbody2D.transform.localScale = scale;
+        canSwipe = false;
+        float swipeLength = 0; //Time since last swipe
+
+        while (swipeLength < shotDelay)
+        {
+            yield return new WaitForSeconds(Time.deltaTime);
+            swipeLength += Time.deltaTime;
+        }
+        canSwipe = true;
     }
+
+
 
 
     //------------------------Collision Handling------------------------
@@ -263,9 +329,9 @@ public class Player : Character
                 Destroy(other);
             }
         }*/
-}
+    }
 
-private void OnTriggerEnter2D(Collider2D collision) //Handles collisions between player and non-physical GameObjects
+    private void OnTriggerEnter2D(Collider2D collision) //Handles collisions between player and non-physical GameObjects
     {
         GameObject other = collision.gameObject;
         if (other.tag == "Pickup") //Player touches a health pickup
@@ -281,7 +347,7 @@ private void OnTriggerEnter2D(Collider2D collision) //Handles collisions between
 
     private bool CheckIfOnGround()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, boxCollider2D.size.y / 2 + 0.05f, groundLayer);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, boxCollider2D.size.y / 2 + 0.25f, groundLayer);
         return hit.collider != null;
     }
 
@@ -324,25 +390,12 @@ private void OnTriggerEnter2D(Collider2D collision) //Handles collisions between
         {
             health += 1;
             timeSinceRegen = 0;
-            Debug.Log("Health: " + health);
         }
         else //Increment time
         {
             timeSinceRegen += Time.deltaTime;
         }
     }
-
-
-
-    /************************************************************************************************
-     * 
-     * Restore small amount of health over time
-     * 
-     * ************************************************************************************************/
-
-
-
-
 
     public void TakeDamage(float value, Vector2 kbDirection) //Decreases player's health and Handles knockback
     {
