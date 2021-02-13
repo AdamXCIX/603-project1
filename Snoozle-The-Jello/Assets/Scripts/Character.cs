@@ -28,7 +28,9 @@ public class Character : MonoBehaviour
 
         spriteRenderer = GetComponent<SpriteRenderer>();
         rigidBody = GetComponent<Rigidbody2D>();
-        boxCollider2D = GetComponent<BoxCollider2D>(); 
+        boxCollider2D = GetComponent<BoxCollider2D>();
+
+        rigidBody.freezeRotation = true; //Prevents player from rotating
     }
 
     // Update is called once per frame

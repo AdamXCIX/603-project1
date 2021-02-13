@@ -7,9 +7,13 @@ public class Projectile : MonoBehaviour
     #region Fields
     protected float damage;
 
-    [SerializeField] Vector2 speed;
+    [SerializeField] protected Vector2 speed;
 
-    private string origin; 
+    private string origin;
+
+    protected float distance;
+    private Vector2 startPos;
+    Rigidbody2D rigidbody2D;
     #endregion
 
     #region Properties
@@ -28,26 +32,30 @@ public class Projectile : MonoBehaviour
         get { return origin; }
         set { origin = value; }
     }
+    public float Distance
+    {
+        get { return distance; }
+        set { distance = value; }
+    }
     #endregion
 
     // Start is called before the first frame update
     protected virtual void Start()
     {
-        
+        startPos = transform.position;
+        rigidbody2D = GetComponent<Rigidbody2D>();
+        rigidbody2D.bodyType = RigidbodyType2D.Kinematic;
+        rigidbody2D.velocity = speed;
     }
 
     // Update is called once per frame
     protected virtual void Update()
     {
-        transform.Translate(Speed);
-
-        float viewportPos = Camera.main.WorldToViewportPoint(transform.position).x;
-
-        if (viewportPos < 0 || viewportPos > 1)
-            Destroy(gameObject);
+        if (Vector2.Distance(transform.position, startPos) >= distance) //Projectile drops off after hitting max distance
+            rigidbody2D.bodyType = RigidbodyType2D.Dynamic;
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.tag == "Player" && origin == "Enemy" || collision.gameObject.tag == "Enemy" && origin == "Player")
         {

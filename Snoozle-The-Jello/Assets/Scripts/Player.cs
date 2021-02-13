@@ -10,7 +10,6 @@ enum PlayerState
 
 public class Player : Character
 {
-    [SerializeField] private float walkSpeed; //Walk Speed
     [SerializeField] private float jumpSpeed; //Initial Jump Speed
     [SerializeField] private float shotSpeed; //Projectile Speed
     [SerializeField] private float shotDistance; //Distance Projectile moves before dropping
@@ -24,9 +23,7 @@ public class Player : Character
     private bool canShoot; //Player can shoot
     private bool canTakeDamage; //Player can be damaged
 
-    private SpriteRenderer spriteRenderer;
-    private Rigidbody2D rigidbody2D;
-    private BoxCollider2D boxCollider2D;
+    private BoxCollider2D boxCollider;
     private LayerMask groundLayer;
     private PlayerState state;
     private PlayerState prevState;
@@ -40,12 +37,12 @@ public class Player : Character
 
         spriteRenderer = GetComponent<SpriteRenderer>();
         rigidBody = GetComponent<Rigidbody2D>();
-        boxCollider2D = GetComponent<BoxCollider2D>();
+        boxCollider = GetComponent<BoxCollider2D>();
         groundLayer = LayerMask.GetMask("Ground");
         state = PlayerState.Stand;
         prevState = state;
 
-        rigidbody2D.freezeRotation = true; //Prevents player from rotating
+        rigidBody.freezeRotation = true; //Prevents player from rotating
 
         base.Start();
     }
@@ -108,7 +105,7 @@ public class Player : Character
                 else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) //Player Moves Right
                     Move(walkSpeed);
 
-                if (onGround && rigidBody.velocity.y < 0) //Landing on the Ground
+                if (onGround && base.rigidBody.velocity.y < 0) //Landing on the Ground
                     state = PlayerState.Stand;
                 break;
         }
@@ -120,10 +117,10 @@ public class Player : Character
     private void Jump(float speed) //Allows the player to jump
     {
         //rigidbody2D.AddForce(new Vector2(0, force), ForceMode2D.Impulse);
-        rigidBody.velocity = new Vector2(rigidBody.velocity.x, speed);
+        base.rigidBody.velocity = new Vector2(base.rigidBody.velocity.x, speed);
     }
 
-   protected override void Shoot()
+    protected override void Shoot()
     {
         ChangeHealth(-damage);
 
@@ -201,7 +198,7 @@ public class Player : Character
 
     private bool CheckIfOnGround()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, boxCollider2D.size.y / 2 + 0.5f, groundLayer);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, boxCollider.size.y / 2 + 0.5f, groundLayer);
         return hit.collider != null;
     }
 
@@ -270,7 +267,7 @@ public class Player : Character
 
         while (kbLength < kbDuration)
         {
-            rigidbody2D.velocity = kbDirection.normalized * kbForce;
+            rigidBody.velocity = kbDirection.normalized * kbForce;
             yield return new WaitForSeconds(Time.deltaTime);
             kbLength += Time.deltaTime;
         }

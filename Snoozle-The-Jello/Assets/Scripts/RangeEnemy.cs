@@ -14,22 +14,29 @@ public class RangeEnemy : Character
     #region Fields
     private EnemyState state;
     private EnemyState prevState;
+
     [SerializeField] private GameManager manager;
     [SerializeField] private float playerTrackingRadius;
     [SerializeField] private float playerShootRadius;
-    [SerializeField] List<float> patrolXPositions;
+    [SerializeField] private List<GameObject> PatrolPositions = new List<GameObject>(2);
+    [SerializeField] private float shotSpeed; //Projectile Speed
+    [SerializeField] private float shotDistance; //Distance Projectile moves before dropping
+    [SerializeField] private float shotDelay; //econds between Projectile shots
+
     private int currentPatrolInd = 0;
     private float prevXPos; 
     private float movementCounter = 0;
-    private float shootingCounter = 0;
-    [SerializeField] private float shootingLimit; 
+    private bool canShoot; 
     #endregion
+
     #region Methods
     protected override void Start()
     {
         manager = FindObjectOfType<GameManager>();
 
         prevXPos = transform.position.x;
+
+        canShoot = true;
 
         base.Start();
     }
@@ -44,7 +51,7 @@ public class RangeEnemy : Character
         if (prevState != state)
         {
             movementCounter = 0;
-            shootingCounter = 0; 
+            canShoot = true;
         }
 
         switch (state)
@@ -56,12 +63,9 @@ public class RangeEnemy : Character
             case EnemyState.Shooting:
                 CheckPlayerDirection();
 
-                shootingCounter += Time.deltaTime;
-
-                if (shootingCounter >= shootingLimit)
+                if (canShoot)
                 {
                     Shoot();
-                    shootingCounter = 0;
                 }
                 break;
             case EnemyState.Patrolling:
@@ -132,7 +136,7 @@ public class RangeEnemy : Character
     /// </summary>
     private void Patrol()
     {
-        Vector3 currentPatrolPos = new Vector3(patrolXPositions[currentPatrolInd], transform.position.y, 0);
+        Vector3 currentPatrolPos = PatrolPositions[currentPatrolInd].transform.position;
 
         float dotResult = Vector2.Dot(transform.right, currentPatrolPos - transform.position);
 
@@ -152,14 +156,14 @@ public class RangeEnemy : Character
         int prevPatrolInd = currentPatrolInd - 1; 
         if (prevPatrolInd < 0)
         {
-            prevPatrolInd = patrolXPositions.Count - 1; 
+            prevPatrolInd = PatrolPositions.Count - 1; 
         }
 
-        if (dist < 0.1 && movementCounter >= (0.5 * Mathf.Abs(patrolXPositions[currentPatrolInd] - patrolXPositions[prevPatrolInd])))
+        if (dist < 0.1 && movementCounter >= (0.5 * Mathf.Abs(PatrolPositions[currentPatrolInd].transform.position.x - PatrolPositions[prevPatrolInd].transform.position.x)))
         {
             currentPatrolInd++; 
 
-            if (currentPatrolInd >= patrolXPositions.Count)
+            if (currentPatrolInd >= PatrolPositions.Count)
             {
                 currentPatrolInd = 0; 
             }
@@ -185,6 +189,40 @@ public class RangeEnemy : Character
             Move(walkSpeed);
             spriteRenderer.flipX = false;
         }
+    }
+
+    protected override void Shoot()
+    {
+        TakeDamage(damage);
+
+        GameObject projectile = Instantiate(projectilePrefab, transform.position, transform.rotation); //Creates a projectile and removes its health from the player
+        Projectile projScript = projectile.GetComponent<Projectile>();
+        if (projScript)
+        {
+            projScript.Damage = damage; //Set shot damage
+            projScript.Distance = shotDistance; //Set shot damage
+            if (!spriteRenderer.flipX) //Set shot direction
+                projScript.Speed = shotSpeed * Vector2.right;
+            else
+                projScript.Speed = shotSpeed * Vector2.left;
+
+            projScript.Origin = "Enemy";
+        }
+
+        StartCoroutine(DelayNextShot(shotDelay));
+    }
+
+    IEnumerator DelayNextShot(float shotDelay)
+    {
+        canShoot = false;
+        float shotLength = 0; //Time since last shot
+
+        while (shotLength < shotDelay)
+        {
+            yield return new WaitForSeconds(Time.deltaTime);
+            shotLength += Time.deltaTime;
+        }
+        canShoot = true;
     }
     #endregion
 }
