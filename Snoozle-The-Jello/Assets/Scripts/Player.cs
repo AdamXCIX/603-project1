@@ -21,7 +21,7 @@ public class Player : Character
     [SerializeField] private float swipeSpeed; //Projectile Speed
     [SerializeField] private float swipeDistance; //Distance Projectile moves before returning
     [SerializeField] private float swipeDelay; //Seconds between Projectile shots
-    [SerializeField] private float kbForce; //Knockback force
+    //[SerializeField] private float kbForce; //Knockback force
     [SerializeField] private float regenDelay; //Seconds between health regenerations
     [SerializeField] private int sizeStages; //Number of stages for size changes
     [SerializeField] private GameObject weapon; //Reference to weapon
@@ -402,7 +402,7 @@ public class Player : Character
         }
     }
 
-    public void TakeDamage(float value, Vector2 kbDirection) //Decreases player's health and Handles knockback
+    public override void TakeDamage(float value, Vector2 kbDirection) //Decreases player's health and Handles knockback
     {
         ChangeHealth(-value);
         
@@ -411,11 +411,10 @@ public class Player : Character
             StartCoroutine(Flash(1.0f, 0.05f));
             StartCoroutine(TakeKnockBack(0.1f, kbDirection));
         }
-        
     }
 
     //------------------------Damage Indicators------------------------
-    IEnumerator Flash(float flashDuration, float flashDelay)
+    protected IEnumerator Flash(float flashDuration, float flashDelay)
     {
         canTakeDamage = false;
 
@@ -435,10 +434,9 @@ public class Player : Character
         canTakeDamage = true;
     }
 
-    IEnumerator TakeKnockBack(float kbDuration, Vector2 kbDirection)
+    /*protected IEnumerator TakeKnockBack(float kbDuration, Vector2 kbDirection)
     {
         float kbLength = 0; //Time player has been flashing
-        Color temp = spriteRenderer.color; //Temporary color used to change player's alpha
 
         while (kbLength < kbDuration)
         {
@@ -446,5 +444,5 @@ public class Player : Character
             yield return new WaitForSeconds(Time.deltaTime);
             kbLength += Time.deltaTime;
         }
-    }
+    }*/
 }

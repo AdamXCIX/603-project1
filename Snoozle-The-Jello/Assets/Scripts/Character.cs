@@ -12,6 +12,7 @@ public class Character : MonoBehaviour
     [SerializeField] protected GameObject projectilePrefab;
 
     [SerializeField] protected float MaxHealth;
+    [SerializeField] protected float kbForce; //Knockback force
 
     protected SpriteRenderer spriteRenderer;
     protected Rigidbody2D rigidBody;
@@ -48,7 +49,7 @@ public class Character : MonoBehaviour
 
     protected virtual void Shoot()
     {
-        TakeDamage(damage);
+        TakeDamage(damage, new Vector2());
 
         Vector3 projectilePos;
 
@@ -63,7 +64,7 @@ public class Character : MonoBehaviour
         projectile.GetComponent<Projectile>().Origin = tag;
     }
 
-    public virtual void TakeDamage(float damage)
+    public virtual void TakeDamage(float damage, Vector2 kbDirection)
     {
         health -= damage;
 
@@ -79,8 +80,21 @@ public class Character : MonoBehaviour
         {
             transform.localScale = new Vector3(0.33f, 0.33f, 1.0f);
         }
+
+        StartCoroutine(TakeKnockBack(0.1f, kbDirection));
     }
 
+    protected IEnumerator TakeKnockBack(float kbDuration, Vector2 kbDirection)
+    {
+        float kbLength = 0; //Time player has been flashing
+
+        while (kbLength < kbDuration)
+        {
+            rigidBody.velocity = kbDirection.normalized * kbForce;
+            yield return new WaitForSeconds(Time.deltaTime);
+            kbLength += Time.deltaTime;
+        }
+    }
 
 
     protected virtual void Move(float speed)

@@ -5,26 +5,30 @@ using UnityEngine;
 public class MeleeEnemy : Character
 {
     public GameObject player;
-    public Rigidbody2D rb;
+    //public Rigidbody2D rb;
     [SerializeField]
     public bool isFacingRight;
     public bool isSeeking;
     [SerializeField] private GameObject pickupPrefab; //Pickup Prefab
 
     // Start is called before the first frame update
-    void Start()
+    protected override void Start()
     {
         if (player == null)
         {
             player = GameObject.FindGameObjectWithTag("Player");
         }
         health = MaxHealth;
-        rb = gameObject.GetComponent<Rigidbody2D>();
         isSeeking = false;
+
+        health = MaxHealth;
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        rigidBody = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
-    void Update()
+    protected override void Update()
     {
         Move();
 
@@ -59,12 +63,13 @@ public class MeleeEnemy : Character
             isSeeking = false;
             // Debug.Log("Wandering");
         }
-        rb.velocity = Vector2.ClampMagnitude(rb.velocity, 1.5f);
+        rigidBody.velocity = Vector2.ClampMagnitude(rigidBody.velocity, 1.5f);
     }
 
-    public override void TakeDamage(float damage)
+    public override void TakeDamage(float damage, Vector2 kbDirection)
     {
         health -= damage;
+        StartCoroutine(TakeKnockBack(0.1f, kbDirection));
     }
 
     /// <summary>
@@ -87,11 +92,11 @@ public class MeleeEnemy : Character
         // gameObject.transform.LookAt(targetObj.transform);
         if (DistBetween(player) > 0)
         {
-            rb.AddForce(new Vector2(walkSpeed, 0));
+            rigidBody.AddForce(new Vector2(walkSpeed, 0));
         }
         else if (DistBetween(player) < 0)
         {
-            rb.AddForce(new Vector2(-walkSpeed, 0));
+            rigidBody.AddForce(new Vector2(-walkSpeed, 0));
         }
     }
 
@@ -102,11 +107,11 @@ public class MeleeEnemy : Character
     {
         if (isFacingRight)
         {
-            rb.AddForce(new Vector2(walkSpeed, 0));
+            rigidBody.AddForce(new Vector2(walkSpeed, 0));
         }
         else
         {
-            rb.AddForce(new Vector2(-walkSpeed, 0));
+            rigidBody.AddForce(new Vector2(-walkSpeed, 0));
         }
     }
 

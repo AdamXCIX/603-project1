@@ -73,7 +73,7 @@ public class PlayerWeapon : MonoBehaviour
 
         if (other.tag == "Enemy")
         {
-            other.GetComponent<Character>().TakeDamage(Damage);
+            other.GetComponent<Character>().TakeDamage(Damage, other.transform.position - transform.position);
             Reset();
         }
     }
