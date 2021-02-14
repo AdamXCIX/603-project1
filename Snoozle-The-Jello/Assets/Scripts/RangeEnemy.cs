@@ -18,7 +18,7 @@ public class RangeEnemy : Character
     [SerializeField] private GameManager manager;
     [SerializeField] private float playerTrackingRadius;
     [SerializeField] private float playerShootRadius;
-    [SerializeField] private List<GameObject> PatrolPositions = new List<GameObject>(2);
+    //[SerializeField] private List<GameObject> PatrolPositions = new List<GameObject>(2);
     [SerializeField] private float shotSpeed; //Projectile Speed
     [SerializeField] private float shotDistance; //Distance Projectile moves before dropping
     [SerializeField] private float shotDelay; //econds between Projectile shots
@@ -50,10 +50,10 @@ public class RangeEnemy : Character
 
         CheckPlayerPos();
 
-        if (prevState != state)
-        {
-            movementCounter = 0;
-        }
+        //if (prevState != state)
+        //{
+        //    movementCounter = 0;
+        //}
 
         switch (state)
         {
@@ -70,10 +70,10 @@ public class RangeEnemy : Character
                     canShoot = false;
                 }
                 break;
-            case EnemyState.Patrolling:
-                Patrol();
-                movementCounter += Mathf.Abs(transform.position.x - prevXPos);
-                break;
+            //case EnemyState.Patrolling:
+            //    Patrol();
+            //    movementCounter += Mathf.Abs(transform.position.x - prevXPos);
+            //    break;
             case EnemyState.Standing:
                 CheckPlayerDirection();
                 GetComponent<Animator>().SetInteger("AnimState", 0);
@@ -151,43 +151,43 @@ public class RangeEnemy : Character
     /// <summary>
     /// Makes this enemy patrol between their set of patrol points
     /// </summary>
-    private void Patrol()
-    {
-        Vector3 currentPatrolPos = PatrolPositions[currentPatrolInd].transform.position;
+    //private void Patrol()
+    //{
+    //    Vector3 currentPatrolPos = PatrolPositions[currentPatrolInd].transform.position;
 
-        float dotResult = Vector2.Dot(transform.right, currentPatrolPos - transform.position);
+    //    float dotResult = Vector2.Dot(transform.right, currentPatrolPos - transform.position);
 
-        if (dotResult < 0)
-        {
-            Move(-walkSpeed);
-            spriteRenderer.flipX = true;
-        }
-        else if (dotResult >= 0)
-        {
-            Move(walkSpeed);
-            spriteRenderer.flipX = false;
-        }
+    //    if (dotResult < 0)
+    //    {
+    //        Move(-walkSpeed);
+    //        spriteRenderer.flipX = true;
+    //    }
+    //    else if (dotResult >= 0)
+    //    {
+    //        Move(walkSpeed);
+    //        spriteRenderer.flipX = false;
+    //    }
 
-        float dist = Vector3.Distance(transform.position, currentPatrolPos);
+    //    float dist = Vector3.Distance(transform.position, currentPatrolPos);
 
-        int prevPatrolInd = currentPatrolInd - 1; 
-        if (prevPatrolInd < 0)
-        {
-            prevPatrolInd = PatrolPositions.Count - 1; 
-        }
+    //    int prevPatrolInd = currentPatrolInd - 1; 
+    //    if (prevPatrolInd < 0)
+    //    {
+    //        prevPatrolInd = PatrolPositions.Count - 1; 
+    //    }
 
-        if (dist < 0.1 && movementCounter >= (0.5 * Mathf.Abs(PatrolPositions[currentPatrolInd].transform.position.x - PatrolPositions[prevPatrolInd].transform.position.x)))
-        {
-            currentPatrolInd++; 
+    //    if (dist < 0.1 && movementCounter >= (0.5 * Mathf.Abs(PatrolPositions[currentPatrolInd].transform.position.x - PatrolPositions[prevPatrolInd].transform.position.x)))
+    //    {
+    //        currentPatrolInd++; 
 
-            if (currentPatrolInd >= PatrolPositions.Count)
-            {
-                currentPatrolInd = 0; 
-            }
+    //        if (currentPatrolInd >= PatrolPositions.Count)
+    //        {
+    //            currentPatrolInd = 0; 
+    //        }
 
-            movementCounter = 0; 
-        }
-    }
+    //        movementCounter = 0; 
+    //    }
+    //}
 
     /// <summary>
     /// Makes this enemy track the player once they are close enough

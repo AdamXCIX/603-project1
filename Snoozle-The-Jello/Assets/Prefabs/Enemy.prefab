@@ -53,11 +53,8 @@ MonoBehaviour:
   MaxHealth: 50
   walkSpeed: 2.5
   manager: {fileID: 0}
-  playerTrackingRadius: 8
-  playerShootRadius: 4
-  PatrolPositions:
-  - {fileID: 0}
-  - {fileID: 0}
+  playerTrackingRadius: 10
+  playerShootRadius: 6
   shotSpeed: 7
   shotDistance: 5
   shotDelay: 1
