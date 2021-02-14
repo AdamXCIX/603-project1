@@ -62,7 +62,10 @@ public class Projectile : MonoBehaviour
             Destroy(gameObject);
         else if (other.tag == "Player" && origin == "Enemy" || other.tag == "Enemy" && origin == "Player")
         {
-            other.GetComponent<Character>().TakeDamage(Damage);
+            if (other.tag == "Player") //Gives player knockback
+                other.GetComponent<Player>().TakeDamage(Damage, other.transform.position - transform.position);
+            else
+                other.GetComponent<Character>().TakeDamage(Damage);
             Destroy(gameObject); 
         }
     }

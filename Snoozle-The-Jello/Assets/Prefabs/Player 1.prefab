@@ -60,8 +60,8 @@ MonoBehaviour:
   swipeSpeed: 10
   swipeDistance: 0.8
   swipeDelay: 0.75
-  kbForce: 7.5
-  regenDelay: 6
+  kbForce: 5
+  regenDelay: 4
   sizeStages: 3
   weapon: {fileID: 530034525368706645}
 --- !u!95 &5867667995261335487

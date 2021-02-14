@@ -22,6 +22,8 @@ public class RangeEnemy : Character
     [SerializeField] private float shotSpeed; //Projectile Speed
     [SerializeField] private float shotDistance; //Distance Projectile moves before dropping
     [SerializeField] private float shotDelay; //econds between Projectile shots
+    [SerializeField] private GameObject pickupPrefab; //Pickup Prefab
+
 
     private int currentPatrolInd = 0;
     private float prevXPos; 
@@ -80,6 +82,13 @@ public class RangeEnemy : Character
 
         prevState = state; //Updates previous state
         prevXPos = transform.position.x;
+
+        if (health <= 0) //Handles death and spawning pickup
+        {
+            GameObject pickup = Instantiate(pickupPrefab, transform.position, Quaternion.identity);
+            pickup.GetComponent<HealthPickup>().Health = MaxHealth * 1.25f;
+            Destroy(this.gameObject);
+        }
     }
 
     /// <summary>
@@ -127,7 +136,7 @@ public class RangeEnemy : Character
     {
         float dotResult = Vector2.Dot(transform.right, manager.player.transform.position - transform.position);
 
-        Debug.Log(dotResult);
+        //Debug.Log(dotResult);
 
         if (dotResult < 0 && !spriteRenderer.flipX)
         {

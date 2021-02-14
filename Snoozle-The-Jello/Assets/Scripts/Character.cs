@@ -18,6 +18,13 @@ public class Character : MonoBehaviour
     protected BoxCollider2D boxCollider2D;
 
     [SerializeField] protected float walkSpeed;
+
+
+    public float Damage
+    {
+        get { return damage; }
+    }
+
     #endregion
 
     #region Methods
@@ -66,13 +73,16 @@ public class Character : MonoBehaviour
         }
         else if (health < ((MaxHealth * 2) / 3) && health > (MaxHealth / 3))
         {
-            transform.localScale = new Vector3(0.67f, 0.67f, 0.67f);
+            transform.localScale = new Vector3(0.67f, 0.67f, 1.0f);
         }
         else
         {
-            transform.localScale = new Vector3(0.33f, 0.33f, 0.33f);
+            transform.localScale = new Vector3(0.33f, 0.33f, 1.0f);
         }
+        Debug.Log("Health: " + health);
     }
+
+
 
     protected virtual void Move(float speed)
     {

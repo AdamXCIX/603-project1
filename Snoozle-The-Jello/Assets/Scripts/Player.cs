@@ -65,16 +65,17 @@ public class Player : Character
 
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
-        base.rigidBody = GetComponent<Rigidbody2D>();
+        rigidBody = GetComponent<Rigidbody2D>();
         boxCollider = GetComponent<BoxCollider2D>();
         groundLayer = LayerMask.GetMask("Ground");
         state = PlayerState.Stand;
         prevState = state;
 
-        weapon.GetComponent<PlayerWeapon>().SSpeed = swipeSpeed;
+        weapon.GetComponent<PlayerWeapon>().Speed = swipeSpeed;
+        weapon.GetComponent<PlayerWeapon>().Damage = damage;
         weapon.GetComponent<PlayerWeapon>().Distance = swipeDistance;
         weapon.SetActive(false);
-        base.rigidBody.freezeRotation = true; //Prevents player from rotating
+        rigidBody.freezeRotation = true; //Prevents player from rotating
 
         base.Start();
     }
@@ -229,7 +230,7 @@ public class Player : Character
     private void Jump(float speed) //Allows the player to jump
     {
         //rigidbody2D.AddForce(new Vector2(0, force), ForceMode2D.Impulse);
-        base.rigidBody.velocity = new Vector2(base.rigidBody.velocity.x, speed);
+        rigidBody.velocity = new Vector2(rigidBody.velocity.x, speed);
     }
 
     protected override void Shoot() //Ranged Attack
@@ -247,6 +248,7 @@ public class Player : Character
         {
             projScript.Damage = damage; //Set shot damage
             projScript.Distance = shotDistance; //Set shot damage
+            projScript.Origin = tag;
             if (transform.localScale.x > 0) //Set shot direction
                 projScript.Speed = shotSpeed * Vector2.right;
             else
@@ -304,28 +306,31 @@ public class Player : Character
     //------------------------Collision Handling------------------------
     private void OnCollisionEnter2D(Collision2D collision) //Handles collisions between player and physical GameObjects
     {
-        //------Collision Handling is commented out until scripts are created------
+        GameObject other = collision.gameObject;
+        Vector2 collisionDirection = transform.position - other.transform.position;
 
-        /*GameObject other = collision.gameObject;
-        if (other.tag == "Enemy" && canTakeDamage) //Player touches an enemy
+        if (canTakeDamage) //Player touches an enemy
         {
-            Enemy enemyScript = other.GetComponent<Enemy>();
-            if (enemyScript) //Player takes damage from contact with enemy
+            if (other.tag == "Enemy") //Player takes damage from contact with enemy
             {
-                Vector2 collisionDirection = transform.position - other.transform.position;
-                TakeDamage(enemyScript.Damage, collisionDirection);
+                RangeEnemy rangeScript = other.GetComponent<RangeEnemy>();
+                //MeleeEnemy meleeScript = other.GetComponent<MeleeEnemy>();
+                if (rangeScript) 
+                    TakeDamage(rangeScript.Damage, collisionDirection);
+                //else if (meleeScript)
+                    //TakeDamage(meleeScript.Damage, collisionDirection);
+            }
+            else if (other.tag == "EnemyProjectile") //Player touches an enemy's projectile
+            {
+                Projectile projScript = other.GetComponent<Projectile>();
+                if (projScript) //Player takes damage from contact with enemy's projectile
+                {
+                    TakeDamage(projScript.Damage, collisionDirection);
+                    Destroy(other);
+                }
             }
         }
-        else if (other.tag == "EnemyProjectile" && canTakeDamage) //Player touches an enemy's projectile
-        {
-            EnemyProjectile projScript = other.GetComponent<projectile>();
-            if (projScript) //Player takes damage from contact with enemy's projectile
-            {
-                Vector2 collisionDirection = transform.position - other.transform.position;
-                TakeDamage(projScript.Damage, collisionDirection);
-                Destroy(other);
-            }
-        }*/
+        
     }
 
     private void OnTriggerEnter2D(Collider2D collision) //Handles collisions between player and non-physical GameObjects
@@ -362,7 +367,7 @@ public class Player : Character
         else //Raises or lowers health
             health += value;
 
-        if (health > damage) //Changes color to show whetehr player can shoot
+        if (health > damage) //Changes color to show whether player can shoot
             spriteRenderer.color = Color.white;
         else if (health > 0)
             spriteRenderer.color = Color.gray;
@@ -375,7 +380,10 @@ public class Player : Character
             if (health >= (MaxHealth * i / sizeStages))
             {
                 float percent = (i + 1.0f) / sizeStages;
-                transform.localScale = new Vector3(percent, percent, 1);
+                if (transform.localScale.x > 0) //Set player direction
+                    transform.localScale = new Vector3(percent, percent, 1);
+                else
+                    transform.localScale = new Vector3(-percent, percent, 1);
                 break;
             }
         }
@@ -434,7 +442,7 @@ public class Player : Character
 
         while (kbLength < kbDuration)
         {
-            base.rigidBody.velocity = kbDirection.normalized * kbForce;
+            rigidBody.velocity = kbDirection.normalized * kbForce;
             yield return new WaitForSeconds(Time.deltaTime);
             kbLength += Time.deltaTime;
         }
