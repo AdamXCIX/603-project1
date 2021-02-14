@@ -79,7 +79,6 @@ public class Character : MonoBehaviour
         {
             transform.localScale = new Vector3(0.33f, 0.33f, 1.0f);
         }
-        Debug.Log("Health: " + health);
     }
 
 

@@ -314,11 +314,11 @@ public class Player : Character
             if (other.tag == "Enemy") //Player takes damage from contact with enemy
             {
                 RangeEnemy rangeScript = other.GetComponent<RangeEnemy>();
-                //MeleeEnemy meleeScript = other.GetComponent<MeleeEnemy>();
+                MeleeEnemy meleeScript = other.GetComponent<MeleeEnemy>();
                 if (rangeScript) 
                     TakeDamage(rangeScript.Damage, collisionDirection);
-                //else if (meleeScript)
-                    //TakeDamage(meleeScript.Damage, collisionDirection);
+                else if (meleeScript)
+                    TakeDamage(meleeScript.Damage, collisionDirection);
             }
             else if (other.tag == "EnemyProjectile") //Player touches an enemy's projectile
             {
