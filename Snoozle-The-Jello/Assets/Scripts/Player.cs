@@ -14,7 +14,6 @@ public class Player : Character
     //For spritesheet animations
     //http://www.strandedsoft.com/using-spritesheets-with-unity3d/
 
-    [SerializeField] private float walkSpeed; //Walk Speed
     [SerializeField] private float jumpSpeed; //Initial Jump Speed
     [SerializeField] private float shotSpeed; //Projectile Speed
     [SerializeField] private float shotDistance; //Distance Projectile moves before dropping
@@ -38,10 +37,8 @@ public class Player : Character
     private float timeSinceRegen;
 
 
-    private SpriteRenderer spriteRenderer;
     private Animator animator;
-    private Rigidbody2D rigidbody2D;
-    private BoxCollider2D boxCollider2D;
+    private BoxCollider2D boxCollider;
     private LayerMask groundLayer;
     private PlayerState state;
     private PlayerState prevState;
@@ -68,8 +65,8 @@ public class Player : Character
 
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
-        rigidbody2D = GetComponent<Rigidbody2D>();
-        boxCollider2D = GetComponent<BoxCollider2D>();
+        base.rigidBody = GetComponent<Rigidbody2D>();
+        boxCollider = GetComponent<BoxCollider2D>();
         groundLayer = LayerMask.GetMask("Ground");
         state = PlayerState.Stand;
         prevState = state;
@@ -77,7 +74,7 @@ public class Player : Character
         weapon.GetComponent<PlayerWeapon>().SSpeed = swipeSpeed;
         weapon.GetComponent<PlayerWeapon>().Distance = swipeDistance;
         weapon.SetActive(false);
-        rigidbody2D.freezeRotation = true; //Prevents player from rotating
+        base.rigidBody.freezeRotation = true; //Prevents player from rotating
 
         base.Start();
     }
@@ -220,9 +217,9 @@ public class Player : Character
     }
 
     //------------------------Basic Controls------------------------
-    private void Move(float speed) //Moves the player horizontally
+    protected override void Move(float speed) //Moves the player horizontally
     {
-        rigidbody2D.velocity = new Vector2(speed, rigidbody2D.velocity.y);
+        rigidBody.velocity = new Vector2(speed, rigidBody.velocity.y);
         if (speed > 0) //Player Faces Left
             transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
         else if (speed < 0) //Player Faces Left
@@ -232,7 +229,7 @@ public class Player : Character
     private void Jump(float speed) //Allows the player to jump
     {
         //rigidbody2D.AddForce(new Vector2(0, force), ForceMode2D.Impulse);
-        rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, speed);
+        base.rigidBody.velocity = new Vector2(base.rigidBody.velocity.x, speed);
     }
 
     protected override void Shoot() //Ranged Attack
@@ -347,7 +344,7 @@ public class Player : Character
 
     private bool CheckIfOnGround()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, boxCollider2D.size.y / 2 + 0.25f, groundLayer);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, boxCollider.size.y / 2 + 0.5f, groundLayer);
         return hit.collider != null;
     }
 
@@ -437,7 +434,7 @@ public class Player : Character
 
         while (kbLength < kbDuration)
         {
-            rigidbody2D.velocity = kbDirection.normalized * kbForce;
+            base.rigidBody.velocity = kbDirection.normalized * kbForce;
             yield return new WaitForSeconds(Time.deltaTime);
             kbLength += Time.deltaTime;
         }

@@ -11,29 +11,49 @@ public class Character : MonoBehaviour
 
     [SerializeField] protected GameObject projectilePrefab;
 
-    [SerializeField] protected float MaxHealth; 
+    [SerializeField] protected float MaxHealth;
+
+    protected SpriteRenderer spriteRenderer;
+    protected Rigidbody2D rigidBody;
+    protected BoxCollider2D boxCollider2D;
+
+    [SerializeField] protected float walkSpeed;
     #endregion
 
     #region Methods
     // Start is called before the first frame update
     protected virtual void Start()
     {
-        health = MaxHealth; 
+        health = MaxHealth;
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        rigidBody = GetComponent<Rigidbody2D>();
+        boxCollider2D = GetComponent<BoxCollider2D>();
+
+        rigidBody.freezeRotation = true; //Prevents player from rotating
     }
 
     // Update is called once per frame
     protected virtual void Update()
     {
-        
+
     }
 
     protected virtual void Shoot()
     {
         TakeDamage(damage);
 
-        GameObject projectile = Instantiate(projectilePrefab);
+        Vector3 projectilePos;
+
+        if (!spriteRenderer.flipX)
+            projectilePos = transform.position + new Vector3(0.1f, 0, 0);
+        else
+            projectilePos = transform.position + new Vector3(-0.1f, 0, 0); 
+
+        GameObject projectile = Instantiate(projectilePrefab, projectilePos, Quaternion.identity);
         projectile.GetComponent<Projectile>().Damage = damage;
-        projectile.GetComponent<Projectile>().Speed = new Vector2(1, 0); 
+        projectile.GetComponent<Projectile>().Speed = new Vector2(0.015f, 0);
+        projectile.GetComponent<Projectile>().Origin = tag;
     }
 
     public virtual void TakeDamage(float damage)
@@ -54,9 +74,9 @@ public class Character : MonoBehaviour
         }
     }
 
-    public virtual void Move()
+    protected virtual void Move(float speed)
     {
-
+        rigidBody.velocity = new Vector2(speed, rigidBody.velocity.y);
     }
     #endregion
 }

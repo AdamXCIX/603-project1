@@ -6,18 +6,9 @@ using UnityEngine;
 public class PlayerWeapon : Projectile
 {
     protected bool attacking;
-    protected float distance;
     protected float sSpeed;
     protected float distThreshold;
-    protected Vector2 startPos;
     protected Vector2 targetPos;
-    protected Rigidbody2D rigidbody2D;
-
-    public float Distance
-    {
-        get { return distance; }
-        set { distance = value; }
-    }
 
     public float SSpeed
     {
@@ -31,8 +22,8 @@ public class PlayerWeapon : Projectile
     {
         startPos = transform.localPosition;
         distThreshold = 0.005f;
-        rigidbody2D = GetComponent<Rigidbody2D>();
-        rigidbody2D.bodyType = RigidbodyType2D.Kinematic;
+        rigidBody = GetComponent<Rigidbody2D>();
+        rigidBody.bodyType = RigidbodyType2D.Kinematic;
         base.Start();
     }
 
