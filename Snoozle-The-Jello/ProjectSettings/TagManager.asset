@@ -4,7 +4,10 @@
 TagManager:
   serializedVersion: 2
   tags:
+  - PlayerProjectile
+  - Pickup
   - Enemy
+  - EnemyProjectile
   - Pathway
   layers:
   - Default
