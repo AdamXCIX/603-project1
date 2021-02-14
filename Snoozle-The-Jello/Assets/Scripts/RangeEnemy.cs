@@ -51,7 +51,6 @@ public class RangeEnemy : Character
         if (prevState != state)
         {
             movementCounter = 0;
-            canShoot = true;
         }
 
         switch (state)
@@ -65,7 +64,8 @@ public class RangeEnemy : Character
 
                 if (canShoot)
                 {
-                    Shoot();
+                    GetComponent<Animator>().SetTrigger("Shooting");
+                    canShoot = false;
                 }
                 break;
             case EnemyState.Patrolling:
@@ -73,7 +73,8 @@ public class RangeEnemy : Character
                 movementCounter += Mathf.Abs(transform.position.x - prevXPos);
                 break;
             case EnemyState.Standing:
-                CheckPlayerDirection(); 
+                CheckPlayerDirection();
+                GetComponent<Animator>().SetInteger("AnimState", 0);
                 break;
         }
 
@@ -99,12 +100,17 @@ public class RangeEnemy : Character
     {
         float dist = DistanceFromPlayer();
         if (dist <= playerShootRadius &&
-            Mathf.Abs(manager.player.transform.position.y - transform.position.y) < 0.1f)
+            Mathf.Abs(manager.player.transform.position.y - transform.position.y) < 0.3f)
         {
-            state = EnemyState.Shooting; 
+            if (state != EnemyState.Standing)
+            {
+                state = EnemyState.Standing;
+            }
+            else
+                state = EnemyState.Shooting; 
         }
         else if (dist <= playerTrackingRadius && 
-            Mathf.Abs(manager.player.transform.position.y - transform.position.y) < 0.1f) 
+            Mathf.Abs(manager.player.transform.position.y - transform.position.y) < 0.3f) 
         {
             state = EnemyState.Tracking;
         }
@@ -120,6 +126,8 @@ public class RangeEnemy : Character
     private void CheckPlayerDirection()
     {
         float dotResult = Vector2.Dot(transform.right, manager.player.transform.position - transform.position);
+
+        Debug.Log(dotResult);
 
         if (dotResult < 0 && !spriteRenderer.flipX)
         {
@@ -191,11 +199,14 @@ public class RangeEnemy : Character
         }
     }
 
-    protected override void Shoot()
+    protected override void Shoot() //Ranged Attack
     {
-        TakeDamage(damage);
+        Vector3 pos = gameObject.transform.position;
+        pos.y -= 0.1f * transform.localScale.y;
+        pos.z = 1;
 
-        GameObject projectile = Instantiate(projectilePrefab, transform.position, transform.rotation); //Creates a projectile and removes its health from the player
+        GameObject projectile = Instantiate(projectilePrefab, pos, gameObject.transform.rotation); //Creates a projectile and removes its health from the player
+        projectile.transform.localScale = transform.localScale;
         Projectile projScript = projectile.GetComponent<Projectile>();
         if (projScript)
         {
@@ -209,12 +220,12 @@ public class RangeEnemy : Character
             projScript.Origin = "Enemy";
         }
 
+        //Set thread to turn shooting back on in a short amount of time
         StartCoroutine(DelayNextShot(shotDelay));
     }
 
     IEnumerator DelayNextShot(float shotDelay)
     {
-        canShoot = false;
         float shotLength = 0; //Time since last shot
 
         while (shotLength < shotDelay)
@@ -222,7 +233,14 @@ public class RangeEnemy : Character
             yield return new WaitForSeconds(Time.deltaTime);
             shotLength += Time.deltaTime;
         }
+
         canShoot = true;
+    }
+
+    protected override void Move(float speed)
+    {
+        GetComponent<Animator>().SetInteger("AnimState", 1);
+        base.Move(speed);
     }
     #endregion
 }

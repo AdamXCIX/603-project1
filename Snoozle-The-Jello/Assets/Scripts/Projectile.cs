@@ -12,8 +12,8 @@ public class Projectile : MonoBehaviour
     private string origin;
 
     protected float distance;
-    private Vector2 startPos;
-    Rigidbody2D rigidbody2D;
+    protected Vector2 startPos;
+    protected Rigidbody2D rigidBody;
     #endregion
 
     #region Properties
@@ -43,23 +43,26 @@ public class Projectile : MonoBehaviour
     protected virtual void Start()
     {
         startPos = transform.position;
-        rigidbody2D = GetComponent<Rigidbody2D>();
-        rigidbody2D.bodyType = RigidbodyType2D.Kinematic;
-        rigidbody2D.velocity = speed;
+        rigidBody = GetComponent<Rigidbody2D>();
+        rigidBody.bodyType = RigidbodyType2D.Kinematic;
+        rigidBody.velocity = speed;
     }
 
     // Update is called once per frame
     protected virtual void Update()
     {
         if (Vector2.Distance(transform.position, startPos) >= distance) //Projectile drops off after hitting max distance
-            rigidbody2D.bodyType = RigidbodyType2D.Dynamic;
+            rigidBody.bodyType = RigidbodyType2D.Dynamic;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.tag == "Player" && origin == "Enemy" || collision.gameObject.tag == "Enemy" && origin == "Player")
+        GameObject other = collision.gameObject;
+        if (other.layer == LayerMask.NameToLayer("Ground")) //Projectile hits ground
+            Destroy(gameObject);
+        else if (other.tag == "Player" && origin == "Enemy" || other.tag == "Enemy" && origin == "Player")
         {
-            collision.gameObject.GetComponent<Character>().TakeDamage(Damage);
+            other.GetComponent<Character>().TakeDamage(Damage);
             Destroy(gameObject); 
         }
     }
