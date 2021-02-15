@@ -18,13 +18,14 @@ public class MeleeEnemy : Character
         {
             player = GameObject.FindGameObjectWithTag("Player");
         }
-        health = MaxHealth;
         isSeeking = false;
 
         health = MaxHealth;
+        canTakeDamage = true;
 
         spriteRenderer = GetComponent<SpriteRenderer>();
         rigidBody = GetComponent<Rigidbody2D>();
+
     }
 
     // Update is called once per frame
@@ -51,7 +52,7 @@ public class MeleeEnemy : Character
     /// </summary>
     public void Move()
     {
-        if (XDistBetween(player) <= 4.0f && YDistBetween(player) <= 0.75f)
+        if (Mathf.Abs(XDistBetween(player)) <= 7.5f && Mathf.Abs(YDistBetween(player)) <= 0.75f)
         {
             Seek(player);
             isSeeking = true;

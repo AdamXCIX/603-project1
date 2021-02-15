@@ -8,6 +8,7 @@ TagManager:
   - Pickup
   - Enemy
   - EnemyProjectile
+  - Pathway
   layers:
   - Default
   - TransparentFX

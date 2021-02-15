@@ -33,6 +33,7 @@ public class Character : MonoBehaviour
     // Start is called before the first frame update
     protected virtual void Start()
     {
+        canTakeDamage = true;
         health = MaxHealth;
 
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -67,23 +68,26 @@ public class Character : MonoBehaviour
 
     public virtual void TakeDamage(float damage, Vector2 kbDirection)
     {
-        health -= damage;
+        if (canTakeDamage)
+        {
+            health -= damage;
 
-        if (health >= ((MaxHealth * 2) / 3))
-        {
-            transform.localScale = new Vector3(1,1,1); 
-        }
-        else if (health < ((MaxHealth * 2) / 3) && health > (MaxHealth / 3))
-        {
-            transform.localScale = new Vector3(0.67f, 0.67f, 1.0f);
-        }
-        else
-        {
-            transform.localScale = new Vector3(0.33f, 0.33f, 1.0f);
-        }
+            if (health >= ((MaxHealth * 2) / 3))
+            {
+                transform.localScale = new Vector3(1, 1, 1);
+            }
+            else if (health < ((MaxHealth * 2) / 3) && health > (MaxHealth / 3))
+            {
+                transform.localScale = new Vector3(0.67f, 0.67f, 1.0f);
+            }
+            else
+            {
+                transform.localScale = new Vector3(0.33f, 0.33f, 1.0f);
+            }
 
-        StartCoroutine(TakeKnockBack(0.1f, kbDirection));
-        StartCoroutine(Flash(0.2f, 0.05f));
+            StartCoroutine(TakeKnockBack(0.1f, kbDirection));
+            StartCoroutine(Flash(0.2f, 0.05f));
+        }
     }
 
     //------------------------Damage Indicators------------------------
