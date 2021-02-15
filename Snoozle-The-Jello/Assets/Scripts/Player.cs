@@ -284,7 +284,7 @@ public class Player : Character
         }
 
         //Set thread to turn swiping back on in a short amount of time
-        StartCoroutine(DelayNextSwipe(shotDelay));
+        StartCoroutine(DelayNextSwipe(swipeDelay));
     }
 
     IEnumerator DelayNextSwipe(float shotDelay)
