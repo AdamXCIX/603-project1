@@ -44,29 +44,39 @@ public class MeleeEnemy : Character
     /// </summary>
     public override void Move()
     {
-        if (DistBetween(player) <= 4.0f)
+        if (XDistBetween(player) <= 4.0f && YDistBetween(player) <= 0.75f)
         {
             Seek(player);
             isSeeking = true;
-            // Debug.Log("Seeking");
+            Debug.Log("Seeking");
         }
         else
         {
             Wander();
             isSeeking = false;
-            // Debug.Log("Wandering");
+            Debug.Log("Wandering");
         }
         rb.velocity = Vector2.ClampMagnitude(rb.velocity, 1.5f);
     }
 
     /// <summary>
-    /// Returns the distance between two objects in a float
+    /// Returns the x-distance between two objects in a float
     /// </summary>
     /// <param name="otherObj"></param>
     /// <returns></returns>
-    private float DistBetween(GameObject otherObj)
+    private float XDistBetween(GameObject otherObj)
     {
         return otherObj.transform.position.x - gameObject.transform.position.x;
+    }
+
+    /// <summary>
+    /// Returns the y-distance between two objects in a float
+    /// </summary>
+    /// <param name="otherObj"></param>
+    /// <returns></returns>
+    private float YDistBetween(GameObject otherObj)
+    {
+        return otherObj.transform.position.y - gameObject.transform.position.y;
     }
 
     /// <summary>
@@ -77,11 +87,11 @@ public class MeleeEnemy : Character
     private void Seek(GameObject targetObj)
     {
         // gameObject.transform.LookAt(targetObj.transform);
-        if (DistBetween(player) > 0)
+        if (XDistBetween(player) > 0)
         {
             rb.AddForce(new Vector2(1.0f, 0));
         }
-        else if (DistBetween(player) <0 )
+        else if (XDistBetween(player) <0 )
         {
             rb.AddForce(new Vector2(-1.0f, 0));
         }
