@@ -10,7 +10,7 @@ public class Healthbar : MonoBehaviour
 
     float startWidth;
     Color startColor;
-    
+
     GameObject player;
     Player playerScript;
 
@@ -33,27 +33,16 @@ public class Healthbar : MonoBehaviour
     {
         if (playerScript)
         {
-            float ratio = playerScript.Health / playerScript.MHealth; //Gets ratio of player's health to max health
+            rect.localScale = new Vector3(
+                playerScript.Health / playerScript.MHealth,
+                1,
+                1
+            );
 
-            Debug.Log("startWidth:" + startWidth);
-            Debug.Log("ratio:" + ratio);
-            Debug.Log("size: " + rect.sizeDelta.x);
-            Debug.Log("new size: " + startWidth * ratio);
-
-
-
-            if (rect.sizeDelta.x != startWidth * ratio) //Updates bar if not up to date
-            {
-                rect.sizeDelta = new Vector2(startWidth * ratio, rect.sizeDelta.y);
-
-                if (playerScript.Health <= playerScript.Damage) //Changes color if player cannot use 
-                    image.color = Color.red;
-                else
-                    image.color = startColor;
-            }
-
-            
-
+            if (playerScript.Health <= playerScript.Damage) //Changes color if player cannot use 
+                image.color = Color.red;
+            else
+                image.color = startColor;
         }
     }
 }
