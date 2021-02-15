@@ -13,6 +13,7 @@ public class Character : MonoBehaviour
 
     [SerializeField] protected float MaxHealth;
     [SerializeField] protected float kbForce; //Knockback force
+    protected bool canTakeDamage; //Player can be damaged
 
     protected SpriteRenderer spriteRenderer;
     protected Rigidbody2D rigidBody;
@@ -82,6 +83,28 @@ public class Character : MonoBehaviour
         }
 
         StartCoroutine(TakeKnockBack(0.1f, kbDirection));
+        StartCoroutine(Flash(0.2f, 0.05f));
+    }
+
+    //------------------------Damage Indicators------------------------
+    protected IEnumerator Flash(float flashDuration, float flashDelay)
+    {
+        canTakeDamage = false;
+
+        float flashLength = 0; //Time player has been flashing
+        Color temp = spriteRenderer.color; //Temporary color used to change player's alpha
+
+        while (flashLength < flashDuration)
+        {
+            temp.a = 0f;
+            spriteRenderer.color = temp;
+            yield return new WaitForSeconds(flashDelay);
+            temp.a = 255f;
+            spriteRenderer.color = temp;
+            yield return new WaitForSeconds(flashDelay);
+            flashLength += flashDelay * 2;
+        }
+        canTakeDamage = true;
     }
 
     protected IEnumerator TakeKnockBack(float kbDuration, Vector2 kbDirection)

@@ -49,38 +49,43 @@ public class MeleeEnemy : Character
     /// <summary>
     /// decides whether to Seek or Wander
     /// </summary>
-    protected void Move()
+    public void Move()
     {
-        if (DistBetween(player) <= 4.0f)
+        if (XDistBetween(player) <= 4.0f && YDistBetween(player) <= 0.75f)
         {
             Seek(player);
             isSeeking = true;
-            // Debug.Log("Seeking");
+            //Debug.Log("Seeking");
         }
         else
         {
             Wander();
             isSeeking = false;
-            // Debug.Log("Wandering");
+            //Debug.Log("Wandering");
         }
         rigidBody.velocity = Vector2.ClampMagnitude(rigidBody.velocity, 1.5f);
     }
 
-    public override void TakeDamage(float damage, Vector2 kbDirection)
-    {
-        health -= damage;
-        StartCoroutine(TakeKnockBack(0.1f, kbDirection));
-    }
-
     /// <summary>
-    /// Returns the distance between two objects in a float
+    /// Returns the x-distance between two objects in a float
     /// </summary>
     /// <param name="otherObj"></param>
     /// <returns></returns>
-    private float DistBetween(GameObject otherObj)
+    private float XDistBetween(GameObject otherObj)
     {
         return otherObj.transform.position.x - gameObject.transform.position.x;
     }
+
+    /// <summary>
+    /// Returns the y-distance between two objects in a float
+    /// </summary>
+    /// <param name="otherObj"></param>
+    /// <returns></returns>
+    private float YDistBetween(GameObject otherObj)
+    {
+        return otherObj.transform.position.y - gameObject.transform.position.y;
+    }
+
 
     /// <summary>
     /// Moves the enemy towards the player character
@@ -90,13 +95,13 @@ public class MeleeEnemy : Character
     private void Seek(GameObject targetObj)
     {
         // gameObject.transform.LookAt(targetObj.transform);
-        if (DistBetween(player) > 0)
+        if (XDistBetween(player) > 0)
         {
-            rigidBody.AddForce(new Vector2(walkSpeed, 0));
+            rigidBody.AddForce(new Vector2(1.0f, 0));
         }
-        else if (DistBetween(player) < 0)
+        else if (XDistBetween(player) < 0)
         {
-            rigidBody.AddForce(new Vector2(-walkSpeed, 0));
+            rigidBody.AddForce(new Vector2(-1.0f, 0));
         }
     }
 
@@ -112,6 +117,16 @@ public class MeleeEnemy : Character
         else
         {
             rigidBody.AddForce(new Vector2(-walkSpeed, 0));
+        }
+    }
+
+    public override void TakeDamage(float damage, Vector2 kbDirection)
+    {
+        if (canTakeDamage)
+        {
+            health -= damage;
+            StartCoroutine(TakeKnockBack(0.1f, kbDirection));
+            StartCoroutine(Flash(0.1f, 0.05f));
         }
     }
 

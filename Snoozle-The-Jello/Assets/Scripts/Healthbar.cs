@@ -35,6 +35,13 @@ public class Healthbar : MonoBehaviour
         {
             float ratio = playerScript.Health / playerScript.MHealth; //Gets ratio of player's health to max health
 
+            Debug.Log("startWidth:" + startWidth);
+            Debug.Log("ratio:" + ratio);
+            Debug.Log("size: " + rect.sizeDelta.x);
+            Debug.Log("new size: " + startWidth * ratio);
+
+
+
             if (rect.sizeDelta.x != startWidth * ratio) //Updates bar if not up to date
             {
                 rect.sizeDelta = new Vector2(startWidth * ratio, rect.sizeDelta.y);

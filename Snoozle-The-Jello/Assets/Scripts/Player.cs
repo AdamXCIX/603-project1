@@ -31,7 +31,7 @@ public class Player : Character
     private bool onGround; //Player is on ground
     private bool canShoot; //Player can shoot
     private bool canSwipe; //Player can swipe attack
-    private bool canTakeDamage; //Player can be damaged
+    //private bool canTakeDamage; //Player can be damaged
     private bool isDead;
 
     private float timeSinceRegen;
@@ -50,10 +50,6 @@ public class Player : Character
     public float Health
     {
         get { return health; }
-    }
-    public float Damage
-    {
-        get { return damage; }
     }
 
     // Start is called before the first frame update
@@ -349,8 +345,12 @@ public class Player : Character
 
     private bool CheckIfOnGround()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, boxCollider.size.y / 2 + 0.5f, groundLayer);
-        return hit.collider != null;
+        Vector2 leftPos = transform.position - new Vector3(boxCollider.size.x / 2, 0, 0);
+        Vector2 rightPos = transform.position + new Vector3(boxCollider.size.x / 2, 0, 0);
+
+        RaycastHit2D leftHit = Physics2D.Raycast(leftPos, Vector2.down, boxCollider.size.y / 2 + 0.5f, groundLayer);
+        RaycastHit2D rightHit = Physics2D.Raycast(rightPos, Vector2.down, boxCollider.size.y / 2 + 0.5f, groundLayer);
+        return (leftHit.collider != null || rightHit.collider != null);
     }
 
     //------------------------Health and Damage------------------------
@@ -414,7 +414,7 @@ public class Player : Character
     }
 
     //------------------------Damage Indicators------------------------
-    protected IEnumerator Flash(float flashDuration, float flashDelay)
+    /*protected IEnumerator Flash(float flashDuration, float flashDelay)
     {
         canTakeDamage = false;
 
@@ -434,7 +434,7 @@ public class Player : Character
         canTakeDamage = true;
     }
 
-    /*protected IEnumerator TakeKnockBack(float kbDuration, Vector2 kbDirection)
+    protected IEnumerator TakeKnockBack(float kbDuration, Vector2 kbDirection)
     {
         float kbLength = 0; //Time player has been flashing
 
