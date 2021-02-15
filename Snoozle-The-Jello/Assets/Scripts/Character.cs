@@ -13,6 +13,7 @@ public class Character : MonoBehaviour
 
     [SerializeField] protected float MaxHealth;
     [SerializeField] protected float kbForce; //Knockback force
+    protected bool canTakeDamage; //Player can be damaged
 
     protected SpriteRenderer spriteRenderer;
     protected Rigidbody2D rigidBody;
@@ -32,6 +33,7 @@ public class Character : MonoBehaviour
     // Start is called before the first frame update
     protected virtual void Start()
     {
+        canTakeDamage = true;
         health = MaxHealth;
 
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -66,22 +68,47 @@ public class Character : MonoBehaviour
 
     public virtual void TakeDamage(float damage, Vector2 kbDirection)
     {
-        health -= damage;
+        if (canTakeDamage)
+        {
+            health -= damage;
 
-        if (health >= ((MaxHealth * 2) / 3))
-        {
-            transform.localScale = new Vector3(1,1,1); 
-        }
-        else if (health < ((MaxHealth * 2) / 3) && health > (MaxHealth / 3))
-        {
-            transform.localScale = new Vector3(0.67f, 0.67f, 1.0f);
-        }
-        else
-        {
-            transform.localScale = new Vector3(0.33f, 0.33f, 1.0f);
-        }
+            if (health >= ((MaxHealth * 2) / 3))
+            {
+                transform.localScale = new Vector3(1, 1, 1);
+            }
+            else if (health < ((MaxHealth * 2) / 3) && health > (MaxHealth / 3))
+            {
+                transform.localScale = new Vector3(0.67f, 0.67f, 1.0f);
+            }
+            else
+            {
+                transform.localScale = new Vector3(0.33f, 0.33f, 1.0f);
+            }
 
-        StartCoroutine(TakeKnockBack(0.1f, kbDirection));
+            StartCoroutine(TakeKnockBack(0.1f, kbDirection));
+            StartCoroutine(Flash(0.2f, 0.05f));
+        }
+    }
+
+    //------------------------Damage Indicators------------------------
+    protected IEnumerator Flash(float flashDuration, float flashDelay)
+    {
+        canTakeDamage = false;
+
+        float flashLength = 0; //Time player has been flashing
+        Color temp = spriteRenderer.color; //Temporary color used to change player's alpha
+
+        while (flashLength < flashDuration)
+        {
+            temp.a = 0f;
+            spriteRenderer.color = temp;
+            yield return new WaitForSeconds(flashDelay);
+            temp.a = 255f;
+            spriteRenderer.color = temp;
+            yield return new WaitForSeconds(flashDelay);
+            flashLength += flashDelay * 2;
+        }
+        canTakeDamage = true;
     }
 
     protected IEnumerator TakeKnockBack(float kbDuration, Vector2 kbDirection)
